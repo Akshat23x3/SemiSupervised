@@ -14,7 +14,7 @@ def read(fname):
 
 #long_des = read("README.rst")
 
-with open("README.rst", "r") as fh:
+with open("/kaggle/working/SemiSupervised/README.rst", "r") as fh:
 	long_description = fh.read()
 
 platforms = ['linux/Windows']
@@ -39,7 +39,7 @@ classifiers = [
 install_requires = [
 	'numpy',
 	'pandas',
-	'sklearn',
+	'scikit-learn',
 ]
 
 	
