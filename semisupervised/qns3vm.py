@@ -872,7 +872,7 @@ class RBFKernel():
 				linkm = array(np.dot(self._data1, self._data2.T))
 				trnorms1 = []
 				for i in range(m):
-					trnorms1.append((np.dot(self._data1[i] ,self._data1[i].T))[0,0])
+					trnorms1.append(np.dot(self._data1[i] ,self._data1[i].T)[0,0])
 				trnorms1 = array(trnorms1).T
 				trnorms2 = []
 				for i in range(n):
