@@ -397,14 +397,14 @@ class QN_S3VM_Dense:
 			x = arr.array('i')
 			for l in self.__L_l:
 				x.append(l)
-			self.__YL = mat(x, dtype=np.float64)
+			self.__YL = array(x, dtype=np.float64)
 			self.__YL = self.__YL.transpose()
 			# Initialize kernel matrices
 			if (self.__kernel_type == "Linear"):
 				self.__kernel = LinearKernel()
 			elif (self.__kernel_type == "RBF"):
 				self.__kernel = RBFKernel(self.__sigma)
-			self.__Xreg = (mat(self.__X)[self.__regressors_indices,:].tolist())
+			self.__Xreg = (array(self.__X)[self.__regressors_indices,:].tolist())
 			self.__KLR = self.__kernel.computeKernelMatrix(self.__X_l,self.__Xreg, symmetric=False)
 			self.__KUR = self.__kernel.computeKernelMatrix(self.__X_u,self.__Xreg, symmetric=False)
 			self.__KNR = cp.deepcopy(bmat([[self.__KLR], [self.__KUR]]))
@@ -429,7 +429,7 @@ class QN_S3VM_Dense:
 		# (that does not optimize the offset b) or not
 		if len(c) == self.__dim - 1:
 			c = np.append(c, self.__b)
-		c = mat(c)
+		c = array(c)
 		b = c[:,self.__dim-1].T
 		c_new = c[:,0:self.__dim-1].T
 		preds_labeled = self.__surrogate_gamma*(1.0 - multiply(self.__YL, self.__KLR * c_new + b))
@@ -457,7 +457,7 @@ class QN_S3VM_Dense:
 		# (that does not optimize the offset b) or not
 		if len(c) == self.__dim - 1:
 			c = np.append(c, self.__b)
-		c = mat(c)
+		c = array(c)
 		b = c[:,self.__dim-1].T
 		c_new = c[:,0:self.__dim-1].T
 		preds_labeled = self.__surrogate_gamma * (1.0 - multiply(self.__YL, self.__KLR * c_new + b))
@@ -482,7 +482,7 @@ class QN_S3VM_Dense:
 		return array((term1 + term2 + term3).T)[0]
 
 	def __recomputeModel(self, indi):
-		self.__c = mat(indi[0]).T
+		self.__c = array(indi[0]).T
 
 	def __getTrainingPredictions(self, X, real_valued=False):
 		preds = self.__KNR * self.__c[0:self.__dim-1,:] + self.__c[self.__dim-1,:]
@@ -539,7 +539,7 @@ class QN_S3VM_Sparse:
 		x = arr.array('i')
 		for l in L_l:
 			x.append(int(l))
-		self.__YL = mat(x, dtype=np.float64)
+		self.__YL = array(x, dtype=np.float64)
 		self.__YL = self.__YL.transpose()
 		self.__setParameters( ** kw)
 		self.__kw = kw
@@ -683,7 +683,7 @@ class QN_S3VM_Sparse:
 		# (that does not optimize the offset b) or not
 		if len(c) == self.__dim - 1:
 			c = np.append(c, self.__b)
-		c = mat(c)
+		c = array(c)
 		b = c[:,self.__dim-1].T
 		c_new = c[:,0:self.__dim-1].T
 		c_new_sum = np.sum(c_new)
@@ -713,7 +713,7 @@ class QN_S3VM_Sparse:
 		# (that does not optimize the offset b) or not
 		if len(c) == self.__dim - 1:
 			c = np.append(c, self.__b)
-		c = mat(c)
+		c = array(c)
 		b = c[:,self.__dim-1].T
 		c_new = c[:,0:self.__dim-1].T
 		c_new_sum = np.sum(c_new)
@@ -744,7 +744,7 @@ class QN_S3VM_Sparse:
 		return array((term1 + term2 + term3).T)[0]
 
 	def __recomputeModel(self, indi):
-		self.__c = mat(indi[0]).T
+		self.__c = array(indi[0]).T
 
 ############################################################################################
 ############################################################################################
@@ -760,11 +760,11 @@ class LinearKernel():
 		Computes the kernel matrix
 		"""
 		logging.debug("Starting Linear Kernel Matrix Computation...")
-		self._data1 = mat(data1)
-		self._data2 = mat(data2)
+		self._data1 = array(data1)
+		self._data2 = array(data2)
 		assert self._data1.shape[1] == (self._data2.T).shape[0]
 		try:
-			return self._data1 * self._data2.T
+			return np.dot(self._data1, self._data2.T)
 		except Exception as e:
 			logging.error("Error while computing kernel matrix: " + str(e))
 			import traceback
@@ -801,7 +801,7 @@ class DictLinearKernel():
 		self._symmetric = symmetric
 		self.__km = None
 		try:
-			km = mat(zeros((self._dim1, self._dim2), dtype=float64))
+			km = array(zeros((self._dim1, self._dim2), dtype=float64))
 			if self._symmetric:
 				for i in range(self._dim1):
 					message = 'Kernel Matrix Progress: %dx%d/%dx%d' % (i, self._dim2,self._dim1,self._dim2)
@@ -848,8 +848,8 @@ class RBFKernel():
 		Computes the kernel matrix
 		"""
 		logging.debug("Starting RBF Kernel Matrix Computation...")
-		self._data1 = mat(data1)
-		self._data2 = mat(data2)
+		self._data1 = array(data1)
+		self._data2 = array(data2)
 		assert self._data1.shape[1] == (self._data2.T).shape[0]
 		self._dim1 = len(data1)
 		self._dim2 = len(data2)
@@ -857,9 +857,9 @@ class RBFKernel():
 		self.__km = None
 		try:
 			if self._symmetric:
-				linearkm = self._data1 * self._data2.T
-				trnorms = mat(np.diag(linearkm)).T
-				trace_matrix = trnorms * mat(np.ones((1, self._dim1), dtype = float64))
+				linearkm = np.dot(self._data1, self._data2.T)
+				trnorms = array(np.diag(linearkm)).T
+				trace_matrix = trnorms * array(np.ones((1, self._dim1), dtype = float64))
 				self.__km = trace_matrix + trace_matrix.T
 				self.__km = self.__km - 2*linearkm
 				self.__km = - self.__sigma_squared_inv * self.__km
@@ -869,17 +869,17 @@ class RBFKernel():
 				m = self._data1.shape[0]
 				n = self._data2.shape[0]
 				assert self._data1.shape[1] == self._data2.shape[1]
-				linkm = mat(self._data1 * self._data2.T)
+				linkm = array(np.dot(self._data1, self._data2.T))
 				trnorms1 = []
 				for i in range(m):
 					trnorms1.append((self._data1[i] * self._data1[i].T)[0,0])
-				trnorms1 = mat(trnorms1).T
+				trnorms1 = array(trnorms1).T
 				trnorms2 = []
 				for i in range(n):
 					trnorms2.append((self._data2[i] * self._data2[i].T)[0,0])
-				trnorms2 = mat(trnorms2).T
-				self.__km = trnorms1 * mat(np.ones((n, 1), dtype = float64)).T
-				self.__km = self.__km + mat(np.ones((m, 1), dtype = float64)) * trnorms2.T
+				trnorms2 = array(trnorms2).T
+				self.__km = trnorms1 * array(np.ones((n, 1), dtype = float64)).T
+				self.__km = self.__km + array(np.ones((m, 1), dtype = float64)) * trnorms2.T
 				self.__km = self.__km - 2 * linkm
 				self.__km = - self.__sigma_squared_inv * self.__km
 				self.__km = np.exp(self.__km)
@@ -918,7 +918,7 @@ class DictRBFKernel():
 		self._symmetric = symmetric
 		self.__km = None
 		try:
-			km = mat(zeros((self._dim1, self._dim2), dtype=float64))
+			km = array(zeros((self._dim1, self._dim2), dtype=float64))
 			if self._symmetric:
 				for i in range(self._dim1):
 					message = 'Kernel Matrix Progress: %dx%d/%dx%d' % (i, self._dim2,self._dim1,self._dim2)
