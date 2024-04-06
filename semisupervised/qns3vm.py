@@ -858,8 +858,8 @@ class RBFKernel():
 		try:
 			if self._symmetric:
 				linearkm = np.dot(self._data1, self._data2.T)
-				trnorms = array(np.diag(linearkm)).T
-				trace_matrix = trnorms * array(np.ones((1, self._dim1), dtype = float64))
+				trnorms1 = array(np.diag(linearkm)).T
+				trace_matrix = np.reshape(trnorms1, (-1, 1)) * array(np.ones((1, self._dim1), dtype = float64))
 				self.__km = trace_matrix + trace_matrix.T
 				self.__km = self.__km - 2*linearkm
 				self.__km = - self.__sigma_squared_inv * self.__km
@@ -874,11 +874,13 @@ class RBFKernel():
 				for i in range(m):
 					trnorms1.append(np.dot(self._data1[i] ,self._data1[i].T))
 				trnorms1 = array(trnorms1).T
+				trnorms1 = np.reshape(trnorms1, (-1, 1))
 				trnorms2 = []
 				for i in range(n):
 					trnorms2.append(np.dot(self._data2[i] ,self._data2[i].T))
 				trnorms2 = array(trnorms2).T
-				self.__km = trnorms1 * array(np.ones((n, 1), dtype = float64)).T
+				trnorms2 = np.reshape(trnorms2, (-1, 1))
+				self.__km =np.reshape(trnorms2, (-1, 1)) * array(np.ones((n, 1), dtype = float64)).T
 				self.__km = self.__km + array(np.ones((m, 1), dtype = float64)) * trnorms2.T
 				self.__km = self.__km - 2 * linkm
 				self.__km = - self.__sigma_squared_inv * self.__km
