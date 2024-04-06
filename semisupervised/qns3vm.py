@@ -876,7 +876,7 @@ class RBFKernel():
 				trnorms1 = array(trnorms1).T
 				trnorms2 = []
 				for i in range(n):
-					trnorms2.append((self._data2[i] * self._data2[i].T)[0,0])
+					trnorms2.append(np.dot(self._data2[i] ,self._data2[i].T))
 				trnorms2 = array(trnorms2).T
 				self.__km = trnorms1 * array(np.ones((n, 1), dtype = float64)).T
 				self.__km = self.__km + array(np.ones((m, 1), dtype = float64)) * trnorms2.T
